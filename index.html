@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Branch Manager - Black & Purple</title>
+  <title>Branch Pages - Black & Purple</title>
   <style>
     :root {
       --bg-color: #050505;
@@ -12,173 +12,239 @@
       --accent-color: #b026ff; /* Neon Purple */
       --accent-glow: #7a00b3;
       --border-color: #2a1a35;
+      --inactive-color: #444;
     }
 
     body {
-      font-family: 'Courier New', Courier, monospace; /* Code-like feel */
+      font-family: 'Courier New', Courier, monospace;
       background-color: var(--bg-color);
       color: var(--text-color);
       margin: 0;
-      padding: 20px;
+      padding: 0;
       height: 100vh;
       display: flex;
       flex-direction: column;
-      box-sizing: border-box;
+      overflow: hidden; /* Prevent body scroll, let content scroll */
     }
 
-    h1 {
-      text-align: center;
-      color: var(--accent-color);
-      text-shadow: 0 0 10px var(--accent-glow);
-      margin-bottom: 20px;
-      font-size: 1.5rem;
-    }
-
-    /* Horizontal Scroll Container */
-    .branches-wrapper {
+    /* Top Navigation Bar */
+    .nav-bar {
       display: flex;
+      background: #0a050f;
+      border-bottom: 1px solid var(--border-color);
+      padding: 0;
       overflow-x: auto;
-      gap: 20px;
-      padding: 20px 0;
-      scroll-behavior: smooth;
-      /* Hide scrollbar for cleaner look (optional) */
-      scrollbar-width: thin;
-      scrollbar-color: var(--accent-color) var(--bg-color);
+      white-space: nowrap;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+      height: 60px;
+      align-items: center;
     }
 
-    .branches-wrapper::-webkit-scrollbar {
-      height: 8px;
+    .nav-item {
+      padding: 0 20px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      font-weight: bold;
+      color: var(--inactive-color);
+      transition: all 0.3s ease;
+      border-right: 1px solid #1a1a1a;
+      user-select: none;
     }
-    .branches-wrapper::-webkit-scrollbar-track {
+
+    .nav-item:hover {
+      color: var(--accent-color);
+      background: #150820;
+    }
+
+    .nav-item.active {
+      color: #fff;
+      background: var(--accent-color);
+      box-shadow: inset 0 0 10px var(--accent-glow);
+      text-shadow: 0 0 5px rgba(255,255,255,0.5);
+    }
+
+    /* Content Area */
+    .content-area {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
       background: var(--bg-color);
     }
-    .branches-wrapper::-webkit-scrollbar-thumb {
-      background-color: var(--accent-color);
-      border-radius: 4px;
+
+    .branch-page {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      padding: 30px;
+      box-sizing: border-box;
+      display: none; /* Hidden by default */
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      overflow-y: auto; /* Internal scrolling for long text */
     }
 
-    .branch-card {
-      flex: 0 0 300px; /* Fixed width, doesn't shrink */
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 15px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-      display: flex;
-      flex-direction: column;
-      transition: transform 0.2s, border-color 0.2s;
-    }
-
-    .branch-card:hover {
-      border-color: var(--accent-color);
-      box-shadow: 0 0 15px var(--accent-glow);
-      transform: translateY(-2px);
-    }
-
-    .branch-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 8px;
-    }
-
-    .branch-name {
-      font-weight: bold;
-      color: var(--accent-color);
-      font-size: 1.1em;
+    .branch-page.active {
+      display: block;
+      opacity: 1;
+      z-index: 10;
     }
 
     textarea {
       width: 100%;
-      flex-grow: 1;
-      min-height: 150px;
-      background: #0a050f;
-      color: #d0d0d0;
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
-      padding: 10px;
+      min-height: calc(100vh - 100px); /* Fill remaining height */
+      background: transparent;
+      color: var(--text-color);
+      border: none;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      resize: none;
       font-family: inherit;
-      resize: none; /* User cannot resize, keeps layout stable */
-      box-sizing: border-box;
+      outline: none;
     }
 
-    textarea:focus {
-      outline: none;
-      border-color: var(--accent-color);
+    textarea::placeholder {
+      color: #555;
+    }
+
+    /* Scrollbar styling for content */
+    .branch-page::-webkit-scrollbar {
+      width: 8px;
+    }
+    .branch-page::-webkit-scrollbar-thumb {
+      background: var(--accent-color);
+      border-radius: 4px;
+    }
+    .branch-page::-webkit-scrollbar-track {
+      background: #000;
     }
 
     .instructions {
-      text-align: center;
-      font-size: 0.8rem;
-      color: #666;
-      margin-top: 20px;
+      position: fixed;
+      bottom: 10px;
+      right: 15px;
+      font-size: 0.75rem;
+      color: #444;
+      pointer-events: none;
+      z-index: 20;
     }
   </style>
 </head>
 <body>
 
-  <h1>Branch Editor (Black/Purple)</h1>
+  <!-- Navigation Bar (Branch Selector) -->
+  <div class="nav-bar" id="navBar">
+    <!-- Nav items injected via JS -->
+  </div>
 
-  <div class="branches-wrapper" id="branchesContainer">
-    <!-- Branches will be injected here via JavaScript -->
+  <!-- Content Area -->
+  <div class="content-area" id="contentArea">
+    <!-- Pages injected via JS -->
   </div>
 
   <div class="instructions">
-    Edit the <code>initialBranches</code> array in the source code to add or remove branches.
+    Edit <code>initialBranches</code> in code to manage pages.
   </div>
 
   <script>
     // ==========================================
     // CONFIGURATION: EDIT THIS ARRAY
     // ==========================================
-    // To add a branch: Add a new object { name: "Name", text: "Content" }
-    // To remove a branch: Delete a line from this array.
+    // Add new pages: { name: "Page Name", text: "Content..." }
+    // Remove pages: Delete the line.
     // ==========================================
     const initialBranches = [
-      { name: "main", text: "This is the main branch content.\nEdit this text directly." },
-      { name: "feature-login", text: "Branch for the login feature.\nChanges go here." },
-      { name: "bugfix-nav", text: "Fixing navigation bug.\nTesting..." },
-      { name: "experimental", text: "Experimental code branch.\nDo not merge yet." }
+      { name: "main", text: "Welcome to the Main Branch.\n\nThis is a full page view. You can write as much text here as you want. The scrollbar will appear on the right if the content gets too long.\n\nClick the tabs above to switch to other branches." },
+      { name: "feature-login", text: "Login Feature Branch\n\nThis is a separate page view.\n\nImagine this is a long document or a code file. \n\nLine 1\nLine 2\nLine 3..." },
+      { name: "docs", text: "Documentation Branch\n\nYou can paste entire articles, codebases, or logs here.\n\nThe layout adapts to the full screen height." },
+      { name: "experimental", text: "Experimental Branch\n\nTesting new ideas here.\n\nThis branch is isolated from the others." }
     ];
     // ==========================================
 
-    const container = document.getElementById('branchesContainer');
+    const navBar = document.getElementById('navBar');
+    const contentArea = document.getElementById('contentArea');
+    
+    // State to track current branch
+    let currentBranchIndex = 0;
 
-    initialBranches.forEach((branch, index) => {
-      const card = document.createElement('div');
-      card.className = 'branch-card';
-
-      const header = document.createElement('div');
-      header.className = 'branch-header';
-
-      const nameSpan = document.createElement('span');
-      nameSpan.className = 'branch-name';
-      nameSpan.textContent = branch.name;
-
-      header.appendChild(nameSpan);
-      card.appendChild(header);
-
-      const textarea = document.createElement('textarea');
-      textarea.placeholder = "Edit content for " + branch.name + "...";
-      textarea.value = branch.text;
+    // Initialize
+    function init() {
+      renderNav();
+      renderPages();
       
-      // Optional: Auto-save to localStorage so you don't lose edits on refresh
-      // (Since we can't write back to the file automatically)
-      const storageKey = `branch_${index}_text`;
-      const savedText = localStorage.getItem(storageKey);
-      if (savedText) {
-        textarea.value = savedText;
+      // Load saved state (last viewed branch)
+      const savedIndex = localStorage.getItem('currentBranchIndex');
+      if (savedIndex !== null) {
+        currentBranchIndex = parseInt(savedIndex, 10);
+        // Ensure index is within bounds
+        if (currentBranchIndex >= initialBranches.length) currentBranchIndex = 0;
       }
 
-      textarea.addEventListener('input', () => {
-        localStorage.setItem(storageKey, textarea.value);
-      });
+      switchBranch(currentBranchIndex);
+    }
 
-      card.appendChild(textarea);
-      container.appendChild(card);
-    });
+    function renderNav() {
+      navBar.innerHTML = '';
+      initialBranches.forEach((branch, index) => {
+        const item = document.createElement('div');
+        item.className = 'nav-item';
+        item.textContent = branch.name;
+        item.onclick = () => switchBranch(index);
+        navBar.appendChild(item);
+      });
+    }
+
+    function renderPages() {
+      contentArea.innerHTML = '';
+      initialBranches.forEach((branch, index) => {
+        const page = document.createElement('div');
+        page.className = 'branch-page';
+        page.id = `page-${index}`;
+
+        const textarea = document.createElement('textarea');
+        textarea.placeholder = `Edit content for ${branch.name}...`;
+        
+        // Load saved text from localStorage
+        const storageKey = `branch_${index}_text`;
+        const savedText = localStorage.getItem(storageKey);
+        if (savedText) {
+          textarea.value = savedText;
+        } else {
+          textarea.value = branch.text;
+        }
+
+        // Save on input
+        textarea.addEventListener('input', () => {
+          localStorage.setItem(storageKey, textarea.value);
+        });
+
+        page.appendChild(textarea);
+        contentArea.appendChild(page);
+      });
+    }
+
+    function switchBranch(index) {
+      // Update UI
+      const navItems = document.querySelectorAll('.nav-item');
+      const pages = document.querySelectorAll('.branch-page');
+
+      // Remove active class from all
+      navItems.forEach(n => n.classList.remove('active'));
+      pages.forEach(p => p.classList.remove('active'));
+
+      // Add active class to selected
+      if (navItems[index]) navItems[index].classList.add('active');
+      if (pages[index]) pages[index].classList.add('active');
+
+      currentBranchIndex = index;
+      localStorage.setItem('currentBranchIndex', index);
+    }
+
+    // Run
+    init();
   </script>
 </body>
 </html>
