@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Branch Pages - Read Only</title>
+  <title>Branch Pages - Black & Purple</title>
   <style>
     :root {
       --bg-color: #050505;
@@ -17,14 +17,14 @@
 
     body {
       font-family: 'Courier New', Courier, monospace;
-      background-color: #000;
+      background-color: var(--bg-color);
       color: var(--text-color);
       margin: 0;
       padding: 0;
       height: 100vh;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
+      overflow: hidden; /* Prevent body scroll, let content scroll */
     }
 
     /* Top Navigation Bar */
@@ -38,7 +38,6 @@
       box-shadow: 0 2px 10px rgba(0,0,0,0.5);
       height: 60px;
       align-items: center;
-      flex-shrink: 0;
     }
 
     .nav-item {
@@ -82,10 +81,10 @@
       height: 100%;
       padding: 30px;
       box-sizing: border-box;
-      display: none;
+      display: none; /* Hidden by default */
       opacity: 0;
       transition: opacity 0.3s ease;
-      overflow-y: auto;
+      overflow-y: auto; /* Internal scrolling for long text */
     }
 
     .branch-page.active {
@@ -94,10 +93,9 @@
       z-index: 10;
     }
 
-    /* Read-Only Styling */
     textarea {
       width: 100%;
-      min-height: calc(100vh - 100px);
+      min-height: calc(100vh - 100px); /* Fill remaining height */
       background: transparent;
       color: var(--text-color);
       border: none;
@@ -106,36 +104,38 @@
       resize: none;
       font-family: inherit;
       outline: none;
-      pointer-events: auto; /* Allows selecting text */
-      user-select: text;    /* Allows copying */
-      cursor: text;         /* Shows text cursor */
     }
 
-    /* Visual cue that it's read-only (optional, subtle) */
-    textarea::selection {
-      background: rgba(176, 38, 255, 0.3);
-      color: #fff;
+    textarea::placeholder {
+      color: #555;
     }
 
-    /* Scrollbar styling */
+    /* Scrollbar styling for content */
     .branch-page::-webkit-scrollbar {
       width: 8px;
     }
     .branch-page::-webkit-scrollbar-thumb {
-      background: #333;
-      border-radius: 4px;
-    }
-    .branch-page::-webkit-scrollbar-thumb:hover {
       background: var(--accent-color);
+      border-radius: 4px;
     }
     .branch-page::-webkit-scrollbar-track {
       background: #000;
+    }
+
+    .instructions {
+      position: fixed;
+      bottom: 10px;
+      right: 15px;
+      font-size: 0.75rem;
+      color: #444;
+      pointer-events: none;
+      z-index: 20;
     }
   </style>
 </head>
 <body>
 
-  <!-- Navigation Bar -->
+  <!-- Navigation Bar (Branch Selector) -->
   <div class="nav-bar" id="navBar">
     <!-- Nav items injected via JS -->
   </div>
@@ -145,26 +145,32 @@
     <!-- Pages injected via JS -->
   </div>
 
+  <div class="instructions">
+    Edit <code>initialBranches</code> in code to manage pages.
+  </div>
+
   <script>
     // ==========================================
     // CONFIGURATION: EDIT THIS ARRAY
     // ==========================================
-    // Add/Remove branches by editing this list.
-    // Text here is what users will see (and copy).
+    // Add new pages: { name: "Page Name", text: "Content..." }
+    // Remove pages: Delete the line.
     // ==========================================
     const initialBranches = [
-      { name: "main", text: "Welcome to the Main Branch.\n\nThis is a read-only view. You can select and copy this text, but you cannot edit it here.\n\nTo change the content, you must edit the source code in your repository." },
-      { name: "feature-login", text: "Login Feature Branch\n\nThis is a separate page view.\n\nImagine this is a long document, code file, or log.\n\nLine 1\nLine 2\nLine 3..." },
-      { name: "docs", text: "Documentation Branch\n\nYou can paste entire articles, codebases, or logs here.\n\nThe layout adapts to the full screen height.\n\nClick the tabs above to switch branches." },
-      { name: "experimental", text: "Experimental Branch\n\nTesting new ideas here.\n\nThis branch is isolated from the others." }
+      { name: "About AS [Absolute Shenanigans] ", text: "This is all info about ABSOLUTE SHENANIGANS\n\nThis is a full new view for JJS movesets where a lot of ppl work. [including myself] \n\nThis is a page made to show all updates on movesets and the people who are on charge \n\nof certain characthers text here as you want. This is made by me, Echolipse as a part to show my support and effort on this project.\n\nClick the tabs above to switch to other branches." },
+      { name: "People on charge of certain movesets", text: "This is the people on charge of characthers (Five characthers Max per person) \n\nEcho (Echolipse_.) :\n\n⬩ Ryomen Sukuna\n\n⬩ Kenajku\n\n⬩ Okkotsu Yuta\n\n⬩ Hazenoki\n\n⬩ Reggie Star \n\nPrompt. \n\nPrompt 1\nPrompt 2\nPrompt 3..." },
+      { name: "Echolipse_.", text: "Documentation Branch\n\nNo logs posted yet." },
+      { name: "Prompt", text: "Experimental Branch\n\nTesting new ideas here.\n\nThis branch is isolated from the others." }
     ];
     // ==========================================
 
     const navBar = document.getElementById('navBar');
     const contentArea = document.getElementById('contentArea');
     
+    // State to track current branch
     let currentBranchIndex = 0;
 
+    // Initialize
     function init() {
       renderNav();
       renderPages();
@@ -173,6 +179,7 @@
       const savedIndex = localStorage.getItem('currentBranchIndex');
       if (savedIndex !== null) {
         currentBranchIndex = parseInt(savedIndex, 10);
+        // Ensure index is within bounds
         if (currentBranchIndex >= initialBranches.length) currentBranchIndex = 0;
       }
 
@@ -198,11 +205,21 @@
         page.id = `page-${index}`;
 
         const textarea = document.createElement('textarea');
-        // Load text (no longer saving edits to localStorage since we are read-only)
-        textarea.value = branch.text;
+        textarea.placeholder = `Edit content for ${branch.name}...`;
         
-        // CRITICAL: Set to read-only
-        textarea.readOnly = true;
+        // Load saved text from localStorage
+        const storageKey = `branch_${index}_text`;
+        const savedText = localStorage.getItem(storageKey);
+        if (savedText) {
+          textarea.value = savedText;
+        } else {
+          textarea.value = branch.text;
+        }
+
+        // Save on input
+        textarea.addEventListener('input', () => {
+          localStorage.setItem(storageKey, textarea.value);
+        });
 
         page.appendChild(textarea);
         contentArea.appendChild(page);
@@ -210,12 +227,15 @@
     }
 
     function switchBranch(index) {
+      // Update UI
       const navItems = document.querySelectorAll('.nav-item');
       const pages = document.querySelectorAll('.branch-page');
 
+      // Remove active class from all
       navItems.forEach(n => n.classList.remove('active'));
       pages.forEach(p => p.classList.remove('active'));
 
+      // Add active class to selected
       if (navItems[index]) navItems[index].classList.add('active');
       if (pages[index]) pages[index].classList.add('active');
 
@@ -223,6 +243,7 @@
       localStorage.setItem('currentBranchIndex', index);
     }
 
+    // Run
     init();
   </script>
 </body>
