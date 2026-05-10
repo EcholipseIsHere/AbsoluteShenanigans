@@ -3,180 +3,182 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Branch Text Manager</title>
+  <title>Branch Manager - Black & Purple</title>
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      max-width: 800px;
-      margin: 40px auto;
-      padding: 20px;
-      background: #f5f5f5;
-      color: #333;
+    :root {
+      --bg-color: #050505;
+      --card-bg: #120a1a;
+      --text-color: #e0e0e0;
+      --accent-color: #b026ff; /* Neon Purple */
+      --accent-glow: #7a00b3;
+      --border-color: #2a1a35;
     }
+
+    body {
+      font-family: 'Courier New', Courier, monospace; /* Code-like feel */
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 20px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+    }
+
     h1 {
       text-align: center;
-      color: #24292e;
-    }
-    .branch-container {
-      background: white;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      padding: 15px;
+      color: var(--accent-color);
+      text-shadow: 0 0 10px var(--accent-glow);
       margin-bottom: 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      font-size: 1.5rem;
     }
+
+    /* Horizontal Scroll Container */
+    .branches-wrapper {
+      display: flex;
+      overflow-x: auto;
+      gap: 20px;
+      padding: 20px 0;
+      scroll-behavior: smooth;
+      /* Hide scrollbar for cleaner look (optional) */
+      scrollbar-width: thin;
+      scrollbar-color: var(--accent-color) var(--bg-color);
+    }
+
+    .branches-wrapper::-webkit-scrollbar {
+      height: 8px;
+    }
+    .branches-wrapper::-webkit-scrollbar-track {
+      background: var(--bg-color);
+    }
+    .branches-wrapper::-webkit-scrollbar-thumb {
+      background-color: var(--accent-color);
+      border-radius: 4px;
+    }
+
+    .branch-card {
+      flex: 0 0 300px; /* Fixed width, doesn't shrink */
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .branch-card:hover {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 15px var(--accent-glow);
+      transform: translateY(-2px);
+    }
+
     .branch-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 10px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 8px;
     }
+
     .branch-name {
       font-weight: bold;
+      color: var(--accent-color);
       font-size: 1.1em;
-      color: #0366d6;
     }
-    .branch-actions button {
-      margin-left: 5px;
-      padding: 5px 10px;
-      background: #efefef;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .branch-actions button:hover {
-      background: #ddd;
-    }
-    .branch-actions button.remove {
-      background: #ffebe9;
-      border-color: #f44336;
-    }
-    .branch-actions button.remove:hover {
-      background: #ffcdd2;
-    }
+
     textarea {
       width: 100%;
-      min-height: 100px;
+      flex-grow: 1;
+      min-height: 150px;
+      background: #0a050f;
+      color: #d0d0d0;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
       padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      resize: vertical;
       font-family: inherit;
+      resize: none; /* User cannot resize, keeps layout stable */
+      box-sizing: border-box;
     }
-    .add-branch {
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent-color);
+    }
+
+    .instructions {
       text-align: center;
-      margin-top: 30px;
-    }
-    .add-branch button {
-      padding: 10px 20px;
-      background: #0366d6;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 1em;
-      cursor: pointer;
-    }
-    .add-branch button:hover {
-      background: #0250b3;
-    }
-    .rename-form {
-      display: none;
-      margin-bottom: 10px;
-    }
-    .rename-form input {
-      padding: 5px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    .rename-form button {
-      margin-left: 5px;
-      padding: 5px 10px;
-      background: #0366d6;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
+      font-size: 0.8rem;
+      color: #666;
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <h1>🌿 Branch Text Manager</h1>
 
-  <div id="branches">
-    <!-- Branches will be added here dynamically -->
+  <h1>Branch Editor (Black/Purple)</h1>
+
+  <div class="branches-wrapper" id="branchesContainer">
+    <!-- Branches will be injected here via JavaScript -->
   </div>
 
-  <div class="add-branch">
-    <button id="addBranchBtn">+ Add New Branch</button>
+  <div class="instructions">
+    Edit the <code>initialBranches</code> array in the source code to add or remove branches.
   </div>
 
   <script>
-    const branchesContainer = document.getElementById('branches');
-    const addBranchBtn = document.getElementById('addBranchBtn');
+    // ==========================================
+    // CONFIGURATION: EDIT THIS ARRAY
+    // ==========================================
+    // To add a branch: Add a new object { name: "Name", text: "Content" }
+    // To remove a branch: Delete a line from this array.
+    // ==========================================
+    const initialBranches = [
+      { name: "main", text: "This is the main branch content.\nEdit this text directly." },
+      { name: "feature-login", text: "Branch for the login feature.\nChanges go here." },
+      { name: "bugfix-nav", text: "Fixing navigation bug.\nTesting..." },
+      { name: "experimental", text: "Experimental code branch.\nDo not merge yet." }
+    ];
+    // ==========================================
 
-    // Initial default branch
-    addBranch('main', 'This is the main branch content. Edit me anytime!');
+    const container = document.getElementById('branchesContainer');
 
-    addBranchBtn.addEventListener('click', () => {
-      addBranch(`branch-${Date.now()}`, 'New branch content. You can rename or delete this.');
+    initialBranches.forEach((branch, index) => {
+      const card = document.createElement('div');
+      card.className = 'branch-card';
+
+      const header = document.createElement('div');
+      header.className = 'branch-header';
+
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'branch-name';
+      nameSpan.textContent = branch.name;
+
+      header.appendChild(nameSpan);
+      card.appendChild(header);
+
+      const textarea = document.createElement('textarea');
+      textarea.placeholder = "Edit content for " + branch.name + "...";
+      textarea.value = branch.text;
+      
+      // Optional: Auto-save to localStorage so you don't lose edits on refresh
+      // (Since we can't write back to the file automatically)
+      const storageKey = `branch_${index}_text`;
+      const savedText = localStorage.getItem(storageKey);
+      if (savedText) {
+        textarea.value = savedText;
+      }
+
+      textarea.addEventListener('input', () => {
+        localStorage.setItem(storageKey, textarea.value);
+      });
+
+      card.appendChild(textarea);
+      container.appendChild(card);
     });
-
-    function addBranch(name, content) {
-      const branchDiv = document.createElement('div');
-      branchDiv.className = 'branch-container';
-
-      branchDiv.innerHTML = `
-        <div class="branch-header">
-          <span class="branch-name" id="name-${Date.now()}">${name}</span>
-          <div class="branch-actions">
-            <button class="rename-btn">Rename</button>
-            <button class="remove-btn remove">Remove</button>
-          </div>
-        </div>
-        <div class="rename-form" id="rename-${Date.now()}">
-          <input type="text" placeholder="New branch name" id="newName-${Date.now()}">
-          <button class="confirm-rename">Confirm</button>
-          <button class="cancel-rename">Cancel</button>
-        </div>
-        <textarea placeholder="Enter text for this branch..." class="branch-content">${content}</textarea>
-      `;
-
-      branchesContainer.appendChild(branchDiv);
-
-      // Rename logic
-      const renameBtn = branchDiv.querySelector('.rename-btn');
-      const renameForm = branchDiv.querySelector('.rename-form');
-      const newNameInput = branchDiv.querySelector('#newName-' + Date.now());
-      const confirmRename = branchDiv.querySelector('.confirm-rename');
-      const cancelRename = branchDiv.querySelector('.cancel-rename');
-      const nameDisplay = branchDiv.querySelector('.branch-name');
-
-      renameBtn.addEventListener('click', () => {
-        renameForm.style.display = 'block';
-        newNameInput.value = nameDisplay.textContent;
-        newNameInput.focus();
-      });
-
-      cancelRename.addEventListener('click', () => {
-        renameForm.style.display = 'none';
-      });
-
-      confirmRename.addEventListener('click', () => {
-        const newName = newNameInput.value.trim();
-        if (newName) {
-          nameDisplay.textContent = newName;
-          renameForm.style.display = 'none';
-        }
-      });
-
-      // Remove logic
-      const removeBtn = branchDiv.querySelector('.remove-btn');
-      removeBtn.addEventListener('click', () => {
-        if (confirm('Are you sure you want to remove this branch?')) {
-          branchDiv.remove();
-        }
-      });
-    }
   </script>
 </body>
 </html>
